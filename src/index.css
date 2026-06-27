@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background: radial-gradient(circle at top, #fefaf0 0%, #faf1e6 100%);
+    min-height: 100vh;
+  }
+}
+
+/* Custom Scrollbar styled with warm turmeric/saffron tones */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fefaf0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #fde047;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #eab308;
+}
+
+/* Custom animations for loading state */
+@keyframes simmer {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(-4px) scale(1.02);
+    opacity: 1;
+    filter: drop-shadow(0 8px 12px rgba(224, 90, 0, 0.15));
+  }
+}
+
+@keyframes steam-rise {
+  0% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-10px) scaleX(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(-25px) scaleX(0.8);
+    opacity: 0;
+  }
+}
+
+.simmer-animation {
+  animation: simmer 3s ease-in-out infinite;
+}
+
+.steam-1 {
+  animation: steam-rise 2s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+.steam-2 {
+  animation: steam-rise 2.4s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+.steam-3 {
+  animation: steam-rise 1.8s ease-in-out infinite;
+  animation-delay: 1.4s;
+}
+
+/* Glassmorphism card utility */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(253, 224, 71, 0.25);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(251, 191, 36, 0.4);
+  box-shadow: 0 10px 30px rgba(224, 90, 0, 0.08);
+}
