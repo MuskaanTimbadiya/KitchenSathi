@@ -21,9 +21,9 @@ KitchenSathi (formerly My Daily Kitchen Planner) is a single-page AI micro appli
 ## Setup & Installation
 
 ### 1. Clone & Configure Key
-Create a `.env` file in the root directory (or open the existing one) and add your Anthropic API Key:
+Create a `.env` file in the root directory (or open the existing one) and add your API Key:
 ```env
-ANTHROPIC_API_KEY=your_actual_anthropic_api_key
+API_KEY=your_actual_api_key
 ```
 
 ### 2. Install Dependencies

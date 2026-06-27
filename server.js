@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import Anthropic from '@anthropic-ai/sdk';
 
 dotenv.config();
 
@@ -18,17 +17,15 @@ async function startServer() {
     const { occasion, peopleCount, dietary, budgetRange, availableIngredients, allergies } = req.body;
     
     // Get key from request headers or environment variables
-    const apiKey = req.headers['x-api-key'] || process.env.ANTHROPIC_API_KEY;
+    const apiKey = req.headers['x-api-key'] || process.env.API_KEY;
 
     if (!apiKey) {
       return res.status(400).json({
-        error: 'Anthropic API Key is missing. Please set your API key in the settings panel (top right).'
+        error: 'API Key is missing. Please set your API key in the settings panel (top right).'
       });
     }
 
     try {
-      const anthropic = new Anthropic({ apiKey });
-
       const systemPrompt = `You are a culinary expert and kitchen planner specializing in Indian home cooking. 
 Your task is to generate a comprehensive, realistic daily meal plan, grocery checklist, substitutions, budget analysis, and cooking timeline.
 
@@ -71,17 +68,38 @@ Assess the "available_at_home" boolean for each grocery item: if the user specif
 - Ingredients already available at home: ${availableIngredients || 'None specified'}
 - Allergies / Avoid list: ${allergies || 'None specified'}
 
-Remember, respond with ONLY the raw JSON object conforming strictly to the requested schema. No markdown formatting.`;
+Remember, respond with ONLY the raw JSON object conforming strictly to the requested schema.`;
 
-      const response = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4000,
-        temperature: 0.3,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-      });
+      const apiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: userPrompt }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: {
+              temperature: 0.3,
+              responseMimeType: 'application/json'
+            }
+          })
+        }
+      );
 
-      let contentText = response.content[0].text.trim();
+      if (!apiResponse.ok) {
+        const errText = await apiResponse.text();
+        let errMsg = 'Failed to call Gemini API';
+        try {
+          const errJson = JSON.parse(errText);
+          errMsg = errJson.error?.message || errText;
+        } catch (_) {}
+        throw new Error(errMsg);
+      }
+
+      const resData = await apiResponse.json();
+      let contentText = resData.candidates?.[0]?.content?.parts?.[0]?.text || '';
       
       // Clean up markdown block if model accidentally included it
       if (contentText.startsWith('```json')) {
@@ -98,16 +116,16 @@ Remember, respond with ONLY the raw JSON object conforming strictly to the reque
         const parsedData = JSON.parse(contentText);
         res.json(parsedData);
       } catch (err) {
-        console.error('Failed to parse Claude JSON response. Raw text:', contentText);
+        console.error('Failed to parse Gemini JSON response. Raw text:', contentText);
         res.status(500).json({
           error: 'The AI model generated an invalid response format. Please try again.',
           rawText: contentText
         });
       }
     } catch (apiError) {
-      console.error('Anthropic API Error:', apiError);
+      console.error('Gemini API Error:', apiError);
       res.status(500).json({
-        error: apiError.message || 'An error occurred while calling the Anthropic API.'
+        error: apiError.message || 'An error occurred while calling the Gemini API.'
       });
     }
   });
