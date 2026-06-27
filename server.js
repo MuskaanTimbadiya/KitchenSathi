@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import serverless from 'serverless-http';
 
 dotenv.config();
 
@@ -148,9 +149,14 @@ Remember, respond with ONLY the raw JSON object conforming strictly to the reque
   }
 
   const port = process.env.PORT || 5173;
-  app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
-  });
+  // In production on Vercel, the server will be run as a serverless function, so we only start a listener in development mode.
+  if (process.env.NODE_ENV !== 'production') {
+    app.listen(port, () => {
+      console.log(`Server is running at http://localhost:${port}`);
+    });
+  }
+  // Export the handler for Vercel
+  export default serverless(app);
 }
 
 startServer().catch((err) => {
